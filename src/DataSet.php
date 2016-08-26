@@ -41,6 +41,11 @@ class DataSet extends Widget
     protected $orderby_uri_desc;
 
     /**
+     * Custom
+     */
+    private $paginate_simple;
+
+    /**
      * @param $source
      *
      * @return static
@@ -114,8 +119,9 @@ class DataSet extends Widget
      *
      * @return $this
      */
-    public function paginate($items)
+    public function paginate($items, $simple = false)
     {
+        $this->paginate_simple = $simple;
         $this->limit = $items;
 
         return $this;
@@ -142,8 +148,8 @@ class DataSet extends Widget
             $this->query = $this->source;
 
         } elseif ( is_a($this->source, "\Zofe\Rapyd\DataFilter\DataFilter")) {
-           $this->type = "model";
-           $this->query = $this->source->query;
+            $this->type = "model";
+            $this->query = $this->source->query;
 
             if (is_a($this->query, "\Illuminate\Database\Eloquent\Model")) {
                 $this->key = $this->query->getKeyName();
@@ -198,21 +204,26 @@ class DataSet extends Widget
                 $this->total_rows = count($this->source);
                 $this->paginator = new LengthAwarePaginator($this->data, $this->total_rows, $limit, $current_page,
                     ['path' => Paginator::resolveCurrentPath(),
-                    'pageName' => "page".$this->cid,
+                     'pageName' => "page".$this->cid,
                     ]);
                 break;
 
             case "query":
             case "model":
-                $this->total_rows = $this->query->count();
+                if(!$this->paginate_simple){
+                    $this->total_rows = $this->query->count();
+                }
                 //orderby
                 if (isset($this->orderby)) {
                     $this->query = $this->query->orderBy($this->orderby[0], $this->orderby[1]);
                 }
                 //limit-offset
                 if (isset($this->limit)){
-                    
-                    $this->paginator = $this->query->paginate($this->limit, ['*'], 'page'.$this->cid);
+                    if($this->paginate_simple){
+                        $this->paginator = $this->query->simplePaginate($this->limit, ['*'], 'page'.$this->cid);
+                    }else{
+                        $this->paginator = $this->query->paginate($this->limit, ['*'], 'page'.$this->cid);
+                    }
                     $this->data = $this->paginator;
                 } else {
                     $this->data = $this->query->get();
@@ -235,7 +246,7 @@ class DataSet extends Widget
 
     /**
      * current data collection
-     * 
+     *
      * @return array
      */
     public function getData()
@@ -244,8 +255,8 @@ class DataSet extends Widget
     }
 
     /**
-     * total row count 
-     * 
+     * total row count
+     *
      * @return string
      */
     public function totalRows()
@@ -277,9 +288,9 @@ class DataSet extends Widget
     }
 
     /**
-     * add the ability to check & enable "order by" of given field/s 
-     * by default you can order by 
-     * 
+     * add the ability to check & enable "order by" of given field/s
+     * by default you can order by
+     *
      * @param mixed $fieldname
      */
     public function addOrderBy($fieldname)
@@ -292,6 +303,6 @@ class DataSet extends Widget
     
     protected function canOrderby($fieldname)
     {
-        return (!$this->orderby_check || in_array($fieldname, $this->orderby_fields)); 
+        return (!$this->orderby_check || in_array($fieldname, $this->orderby_fields));
     }
 }
