@@ -1,6 +1,6 @@
 {
-    "name": "zofe/rapyd",
-    "description": "crud widgets for laravel, to make an admin in few lines of code",
+    "name": "vuthaihoc/rapyd",
+    "description": "crud widgets for laravel, to make an admin in few lines of code(custom for my project only)",
     "homepage": "https://github.com/zofe/rapyd-laravel",
     "keywords": ["laravel", "crud", "rapyd", "administrator", "admin", "backend", "datatable", "form"],
     "authors": [
